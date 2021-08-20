@@ -4,7 +4,8 @@ project(FISHEYE_STEREO)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(OpenCV REQUIRED)
-include_directories($(OpenCV_INCLUDE_DIRS))
+#find_package(libpopt REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(calibrate calibrate.cpp)
-target_link_libraries(calibrate ${OpenCV_LIBS} "-lpopt")
+target_link_libraries(calibrate ${OpenCV_LIBS} )

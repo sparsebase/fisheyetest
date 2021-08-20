@@ -4,7 +4,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <stdio.h>
 #include <iostream>
-#include "popt_pp.h"
+//#include "popt_pp.h"
 
 using namespace std;
 using namespace cv;
@@ -25,28 +25,28 @@ void load_image_points(int board_width, int board_height, float square_size, int
     char left_img[100], right_img[100];
     sprintf(left_img, "%s%s%d.jpg", img_dir, leftimg_filename, i);
     sprintf(right_img, "%s%s%d.jpg", img_dir, rightimg_filename, i);
-    img1 = imread(left_img, CV_LOAD_IMAGE_COLOR);
-    img2 = imread(right_img, CV_LOAD_IMAGE_COLOR);
-    cv::cvtColor(img1, gray1, CV_BGR2GRAY);
-    cv::cvtColor(img2, gray2, CV_BGR2GRAY);
+    img1 = imread(left_img, IMREAD_COLOR);
+    img2 = imread(right_img, IMREAD_COLOR);
+    cv::cvtColor(img1, gray1, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(img2, gray2, cv::COLOR_BGR2GRAY);
 
     bool found1 = false, found2 = false;
 
     found1 = cv::findChessboardCorners(img1, board_size, corners1,
-  CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
+  cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);
     found2 = cv::findChessboardCorners(img2, board_size, corners2,
-  CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
+  cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);
 
     if (found1)
     {
       cv::cornerSubPix(gray1, corners1, cv::Size(5, 5), cv::Size(-1, -1),
-  cv::TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+  cv::TermCriteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 0.1));
       cv::drawChessboardCorners(gray1, board_size, corners1, found1);
     }
     if (found2)
     {
       cv::cornerSubPix(gray2, corners2, cv::Size(5, 5), cv::Size(-1, -1),
-  cv::TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+  cv::TermCriteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 0.1));
       cv::drawChessboardCorners(gray2, board_size, corners2, found2);
     }
 
@@ -75,29 +75,29 @@ void load_image_points(int board_width, int board_height, float square_size, int
 
 int main(int argc, char const *argv[])
 {
-  int board_width, board_height, num_imgs;
-  float square_size;
-  char* img_dir;
-  char* leftimg_filename;
-  char* rightimg_filename;
-  char* out_file;
+  int board_width = 9, board_height = 6, num_imgs = 29;
+  float square_size = 0.02423;
+  char* img_dir = "../../imgs/";
+  char* leftimg_filename = "left";
+  char* rightimg_filename = "right";
+  char* out_file = "cam_stereo.yml";
 
-  static struct poptOption options[] = {
-    { "board_width",'w',POPT_ARG_INT,&board_width,0,"Checkerboard width","NUM" },
-    { "board_height",'h',POPT_ARG_INT,&board_height,0,"Checkerboard height","NUM" },
-    { "square_size",'s',POPT_ARG_FLOAT,&square_size,0,"Checkerboard square size","NUM" },
-    { "num_imgs",'n',POPT_ARG_INT,&num_imgs,0,"Number of checkerboard images","NUM" },
-    { "img_dir",'d',POPT_ARG_STRING,&img_dir,0,"Directory containing images","STR" },
-    { "leftimg_filename",'l',POPT_ARG_STRING,&leftimg_filename,0,"Left image prefix","STR" },
-    { "rightimg_filename",'r',POPT_ARG_STRING,&rightimg_filename,0,"Right image prefix","STR" },
-    { "out_file",'o',POPT_ARG_STRING,&out_file,0,"Output calibration filename (YML)","STR" },
-    POPT_AUTOHELP
-    { NULL, 0, 0, NULL, 0, NULL, NULL }
-  };
-
-  POpt popt(NULL, argc, argv, options, 0);
-  int c;
-  while((c = popt.getNextOpt()) >= 0) {}
+//   static struct poptOption options[] = {
+//     { "board_width",'w',POPT_ARG_INT,&board_width,0,"Checkerboard width","NUM" },
+//     { "board_height",'h',POPT_ARG_INT,&board_height,0,"Checkerboard height","NUM" },
+//     { "square_size",'s',POPT_ARG_FLOAT,&square_size,0,"Checkerboard square size","NUM" },
+//     { "num_imgs",'n',POPT_ARG_INT,&num_imgs,0,"Number of checkerboard images","NUM" },
+//     { "img_dir",'d',POPT_ARG_STRING,&img_dir,0,"Directory containing images","STR" },
+//     { "leftimg_filename",'l',POPT_ARG_STRING,&leftimg_filename,0,"Left image prefix","STR" },
+//     { "rightimg_filename",'r',POPT_ARG_STRING,&rightimg_filename,0,"Right image prefix","STR" },
+//     { "out_file",'o',POPT_ARG_STRING,&out_file,0,"Output calibration filename (YML)","STR" },
+//     POPT_AUTOHELP
+//     { NULL, 0, 0, NULL, 0, NULL, NULL }
+//   };
+//
+//   POpt popt(NULL, argc, argv, options, 0);
+//   int c;
+//   while((c = popt.getNextOpt()) >= 0) {}
 
   load_image_points(board_width, board_height, square_size, num_imgs, img_dir, leftimg_filename, rightimg_filename);
 
@@ -116,6 +116,7 @@ int main(int argc, char const *argv[])
       K1, D1, K2, D2, img1.size(), R, T, flag,
       cv::TermCriteria(3, 12, 0));
 
+
   cv::FileStorage fs1(out_file, cv::FileStorage::WRITE);
   fs1 << "K1" << Mat(K1);
   fs1 << "K2" << Mat(K2);
@@ -128,8 +129,25 @@ int main(int argc, char const *argv[])
   printf("Starting Rectification\n");
 
   cv::Mat R1, R2, P1, P2, Q;
-  cv::fisheye::stereoRectify(K1, D1, K2, D2, img1.size(), R, T, R1, R2, P1, P2, 
-Q, CV_CALIB_ZERO_DISPARITY, img1.size(), 0.0, 1.1);
+  cv::fisheye::stereoRectify(K1, D1, K2, D2, img1.size(), R, T, R1, R2, P1, P2, Q, cv::CALIB_ZERO_DISPARITY, img1.size(), 0.0, 1.1);
+
+  Mat rmap[2][2];
+  cv::fisheye::initUndistortRectifyMap(K1, D1, R1, P1, img1.size(), CV_32FC1, rmap[0][0], rmap[0][1]);
+  cv::fisheye::initUndistortRectifyMap(K2, D2, R2, P2, img1.size(), CV_32FC1, rmap[1][0], rmap[1][1]);
+  cv::Mat leftImg, rightImg;
+  char left_img[100], right_img[100];
+  const int img_idx = 10;
+  sprintf(left_img, "%s%s%d.jpg", img_dir, leftimg_filename, img_idx);
+  sprintf(right_img, "%s%s%d.jpg", img_dir, rightimg_filename, img_idx);
+
+  leftImg = imread(left_img, IMREAD_COLOR);
+  rightImg = imread(right_img, IMREAD_COLOR);
+
+  cv::Mat rectL, rectR;
+  cv::remap(leftImg, rectL, rmap[0][0], rmap[0][1], INTER_LINEAR, BORDER_CONSTANT);
+  cv::remap(rightImg, rectR, rmap[1][0], rmap[1][1], INTER_LINEAR, BORDER_CONSTANT);
+  imshow("Left Image", rectL);
+  imshow("Right Image", rectR);
 
   fs1 << "R1" << R1;
   fs1 << "R2" << R2;
@@ -138,5 +156,6 @@ Q, CV_CALIB_ZERO_DISPARITY, img1.size(), 0.0, 1.1);
   fs1 << "Q" << Q;
 
   printf("Done Rectification\n");
+  waitKey(0);
   return 0;
 }
